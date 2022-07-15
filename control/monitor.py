@@ -7,6 +7,7 @@ import paho.mqtt.client as mqtt
 import schedule
 import time
 from django.conf import settings
+from django.utils import timezone
 
 client = mqtt.Client(settings.MQTT_USER_PUB)
 
@@ -60,9 +61,10 @@ def analyze_data():
 
 def check_humidity():
     print("Inicio verificacion de humedad...")
+    print(timezone.now() - timedelta(hours=1))
     humedad_maxima = 20
     data = Data.objects.filter(
-        base_time__gte=datetime.now() - timedelta(hours=1), measurement__name="humedad")
+        base_time__gte=timezone.now() - timedelta(hours=1), measurement__name="humedad")
     aggregation = data.annotate(check_value=Avg('avg_value')) \
         .select_related('station') \
         .select_related('station__user', 'station__location') \
