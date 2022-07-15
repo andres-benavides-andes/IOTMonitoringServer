@@ -58,6 +58,32 @@ def analyze_data():
     print(len(aggregation), "dispositivos revisados")
     print(alerts, "alertas enviadas")
 
+def check_humidity():
+    humedad_maxima = 20
+    data = Data.objects.filter(
+        base_time__gte=datetime.now() - timedelta(hours=1), measurement__name="humedad")
+    aggregation = data.annotate(check_value=Avg('avg_value')) \
+        .select_related('station') \
+        .select_related('station__user', 'station__location') \
+        .select_related('station__location__city', 'station__location__state',
+                        'station__location__country') \
+        .values('check_value', 'station__user__username',
+                'station__location__city__name',
+                'station__location__state__name',
+                'station__location__country__name')
+    
+    country = aggregation['station__location__country__name']
+    state = aggregation['station__location__state__name']
+    city = aggregation['station__location__city__name']
+    user = aggregation['station__user__username']
+
+    if ["check_value"] > humedad_maxima:
+        message = "ALERT la humedad supera el {}% ".format(humedad_maxima)
+        topic = '{}/{}/{}/{}/in'.format(country, state, city, user)
+        print(datetime.now(), "Envio alarte de mucha humedad {}".format(topic))
+        client.publish(topic, message)
+      
+
 
 def on_connect(client, userdata, flags, rc):
     '''
@@ -105,7 +131,7 @@ def start_cron():
     Inicia el cron que se encarga de ejecutar la función analyze_data cada 5 minutos.
     '''
     print("Iniciando cron...")
-    schedule.every(5).minutes.do(analyze_data)
+    schedule.every(2).minutes.do(check_humidity)
     print("Servicio de control iniciado")
     while 1:
         schedule.run_pending()
