@@ -64,7 +64,7 @@ def check_lum_and_temp():
     
     
     data = Data.objects.filter(
-        base_time__gte=timezone.now() - timedelta(minutes=5), measurement__name__in=["temperatura","luminosidad"])
+        base_time__gte=timezone.now() - timedelta(hours=1), measurement__name__in=["temperatura","luminosidad"])
     aggregation = data.annotate(check_value=Avg('avg_value')) \
         .select_related('station') \
         .select_related('station__user', 'station__location') \
