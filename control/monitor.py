@@ -10,7 +10,7 @@ from django.conf import settings
 from django.utils import timezone
 
 client = mqtt.Client(settings.MQTT_USER_PUB)
-
+TIME_ZONE = 'America/Bogota'
 
 def analyze_data():
     # Consulta todos los datos de la última hora, los agrupa por estación y variable
@@ -62,7 +62,7 @@ def analyze_data():
 def check_humidity():
     print("Inicio verificacion de humedad...")
     print(timezone.now() - timedelta(hours=1))
-    humedad_maxima = 20
+    humedad_maxima = 17
     data = Data.objects.filter(
         base_time__gte=timezone.now() - timedelta(hours=1), measurement__name="humedad")
     aggregation = data.annotate(check_value=Avg('avg_value')) \
