@@ -59,12 +59,12 @@ def analyze_data():
     print(len(aggregation), "dispositivos revisados")
     print(alerts, "alertas enviadas")
 
-def check_humidity():
+def check_lum_and_temp():
     print("Inicio verificacion de humedad...")
     print(timezone.now() - timedelta(hours=1))
     humedad_maxima = 17
     data = Data.objects.filter(
-        base_time__gte=timezone.now() - timedelta(hours=1), measurement__name="humedad")
+        base_time__gte=timezone.now() - timedelta(hours=1), measurement__name=["temperatura","luminosidad"])
     aggregation = data.annotate(check_value=Avg('avg_value')) \
         .select_related('station') \
         .select_related('station__user', 'station__location') \
@@ -74,15 +74,28 @@ def check_humidity():
                 'station__location__city__name',
                 'station__location__state__name',
                 'station__location__country__name')
+    alertTemp = False
+    alertLum = False
     for item in aggregation:
+
+        variable = item["measurement__name"]
+        min_value = item["measurement__min_value"] or 0
 
         country = item['station__location__country__name']
         state = item['station__location__state__name']
         city = item['station__location__city__name']
         user = item['station__user__username']
 
-        if item["check_value"] > humedad_maxima:
-            message = "ALERT la humedad supera el {}% ".format(humedad_maxima)
+        if variable == "temperatura" and item["check_value"] > min_value:
+            alertTemp = True
+            valTemp = item["check_value"]
+
+        if variable == "luminosidad" and item["check_value"] > min_value:
+            alertLum = True
+            valLum = item["check_value"]
+
+        if alertTemp and alertLum:
+            message = "ALERTA temperatura {} - oscuridad {} ".format(valTemp,valLum)
             topic = '{}/{}/{}/{}/in'.format(country, state, city, user)
             print(datetime.now(), "Envio alarte de mucha humedad {}".format(topic))
             client.publish(topic, message)
@@ -135,7 +148,7 @@ def start_cron():
     Inicia el cron que se encarga de ejecutar la función analyze_data cada 5 minutos.
     '''
     print("Iniciando cron...")
-    schedule.every(1).minutes.do(check_humidity)
+    schedule.every(1).minutes.do(check_lum_and_temp)
     print("Servicio de control iniciado")
     while 1:
         schedule.run_pending()
