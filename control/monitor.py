@@ -60,9 +60,9 @@ def analyze_data():
     print(alerts, "alertas enviadas")
 
 def check_lum_and_temp():
-    print("Inicio verificacion de humedad...")
-    print(timezone.now() - timedelta(hours=1))
-    humedad_maxima = 17
+    print("Inicio verificacion temperatura y luminosidad...")
+    
+    
     data = Data.objects.filter(
         base_time__gte=timezone.now() - timedelta(hours=1), measurement__name=["temperatura","luminosidad"])
     aggregation = data.annotate(check_value=Avg('avg_value')) \
@@ -71,6 +71,8 @@ def check_lum_and_temp():
         .select_related('station__location__city', 'station__location__state',
                         'station__location__country') \
         .values('check_value', 'station__user__username',
+                'measurement__name',
+                'measurement__max_value',
                 'station__location__city__name',
                 'station__location__state__name',
                 'station__location__country__name')
@@ -85,6 +87,10 @@ def check_lum_and_temp():
         state = item['station__location__state__name']
         city = item['station__location__city__name']
         user = item['station__user__username']
+        
+        print(variable)
+        print(item["check_value"])
+        print(min_value)
 
         if variable == "temperatura" and item["check_value"] > min_value:
             alertTemp = True
