@@ -64,7 +64,7 @@ def check_lum_and_temp():
     
     
     data = Data.objects.filter(
-        base_time__gte=timezone.now() - timedelta(hours=1), measurement__name__in=["temperatura","luminosidad"])
+        base_time__gte=timezone.now() - timedelta(minutes=5), measurement__name__in=["temperatura","luminosidad"])
     aggregation = data.annotate(check_value=Avg('avg_value')) \
         .select_related('station') \
         .select_related('station__user', 'station__location') \
@@ -101,7 +101,7 @@ def check_lum_and_temp():
             valLum = item["check_value"]
 
         if alertTemp and alertLum:
-            message = "ALERTA temperatura {} - oscuridad {} ".format(valTemp,valLum)
+            message = "ALERTA temperatura {} - oscuridad {} ".format(round(valTemp,2),round(valLum,2))
             topic = '{}/{}/{}/{}/in'.format(country, state, city, user)
             print(datetime.now(), "Envio alarte de mucha humedad {}".format(topic))
             client.publish(topic, message)
