@@ -10,7 +10,7 @@ from django.conf import settings
 from django.utils import timezone
 
 client = mqtt.Client(settings.MQTT_USER_PUB)
-TIME_ZONE = 'America/Bogota'
+
 
 def analyze_data():
     # Consulta todos los datos de la última hora, los agrupa por estación y variable
@@ -103,7 +103,7 @@ def check_lum_and_temp():
         if alertTemp and alertLum:
             message = "ALERTA temperatura {} - oscuridad {} ".format(round(valTemp,2),round(valLum,2))
             topic = '{}/{}/{}/{}/in'.format(country, state, city, user)
-            print(datetime.now(), "Envio alarte de mucha humedad {}".format(topic))
+            print(datetime.now(), "Envio alarte de temperatura y luminosidad {}".format(topic))
             client.publish(topic, message)
       
 
