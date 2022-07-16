@@ -92,7 +92,7 @@ def check_lum_and_temp():
         print(item["check_value"])
         print(min_value)
 
-        if variable == "temperatura" and item["check_value"] > min_value:
+        if variable == "temperatura" and item["check_value"] < min_value:
             alertTemp = True
             valTemp = item["check_value"]
 
