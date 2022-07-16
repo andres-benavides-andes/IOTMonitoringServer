@@ -72,7 +72,7 @@ def check_lum_and_temp():
                         'station__location__country') \
         .values('check_value', 'station__user__username',
                 'measurement__name',
-                'measurement__max_value',
+                'measurement__min_value',
                 'station__location__city__name',
                 'station__location__state__name',
                 'station__location__country__name')
